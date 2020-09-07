@@ -1,6 +1,9 @@
 package com.example.recycler;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -15,15 +18,30 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
+    RecyclerView recyclerView;
+    UserAdapter userAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        recyclerView = findViewById(R.id.recyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
+
+        userAdapter = new UserAdapter();
+        getAllUsers();
+
+    }
+
+    public void getAllUsers(){
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://jsonplaceholder.typicode.com")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
+
+
 
         JsonPlaceHolder jsonPlaceHolder = retrofit.create(JsonPlaceHolder.class);
 
@@ -31,7 +49,12 @@ public class MainActivity extends AppCompatActivity {
         call.enqueue(new Callback<List<Post>>() {
             @Override
             public void onResponse(Call<List<Post>> call, Response<List<Post>> response) {
-                Log.i("onResponse: ","yes it passed");
+                //Log.i("onResponse: ","yes it passed");
+                if(response.isSuccessful()) {
+                    List<Post> posts = response.body();
+                    userAdapter.setData(posts);
+                    recyclerView.setAdapter(userAdapter);
+                }
 
             }
 
@@ -40,5 +63,8 @@ public class MainActivity extends AppCompatActivity {
                 Log.i("onFailure","fail");
             }
         });
+
     }
+
+
 }
